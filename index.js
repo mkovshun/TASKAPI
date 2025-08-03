@@ -1,109 +1,30 @@
+require('dotenv').config();
+const PORT = process.env.PORT || 3000;
+
 const expres = require('express');
-const app = expres()
-const PORT = 3000
+const app = expres();
 
-app.use(expres.json())
+const sequelize = require('./db');
+const taskRoutes = require('./routes/tasks');
+const userRoutes = require('./routes/users');
 
-let tasks = [
-  {
-    "id": 1,
-    "title": "ToDo 1",
-    "completed": false
-  },
-  {
-    "id": 2,
-    "title": "ToDo 2",
-    "completed": false
- },
-  { 
-    "id": 3,
-    "title": "ToDo 3",
-    "completed": true
-  },
-];
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
-let idCounter = 4;
+app.use(expres.json());
 
-console.log(0 * 5);
+app.use('/tasks', taskRoutes);
+app.use('/users', userRoutes);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+sequelize.authenticate()
+  .then(() => console.log('✅ Підключення до БД успішне'))
+  .catch(err => console.error('❌ Помилка підключення до БД:', err));
 
-app.get('/tasks', (req, res) => {
-  let result = tasks;
-
-  if (req.query.completed !== undefined) {
-    const isCompleted = req.query.completed === 'true'; //GET /tasks?completed=true
-    result = result.filter(t => t.completed === isCompleted);
-  }
-
-  if (req.query.search !== undefined) {
-    const searchedTest = req.query.search; // (GET /tasks?search=текст)
-    result = result.filter(t => t.title.toString().toLowerCase().includes(searchedTest.toLowerCase()));
-  }
-
-  if (req.query.page !== undefined) { 
-    const currentPage = Number(req.query.page); //  GET /tasks?page=1&limit=5
-    const pageSize = Number(req.query.limit);
-    
-    const startPoint = (currentPage - 1) * pageSize;
-    const endPoint = startPoint + pageSize;
-    
-    result = result.slice(startPoint, endPoint)
-  }
-
-  res.json(result);
-});
-
-app.post('/tasks', (req, res) => {
-  const { title, completed } = req.body
-  if (!title || completed === undefined) {
-    return res.status(400).json({ error: 'title or completed is required!'})
-  }
-
-  const newTaks = {
-    id: idCounter++,
-    title,
-    completed,
-  }
-
-  tasks.push(newTaks)
-  res.status(201).json(newTaks)
-})
-
-app.put('/tasks/:id', (req, res) => {
-  let id = Number(req.params.id)
-
-  const {title, completed } = req.body // ДЕСТРУКТУРОВАНИЙ ЗАПИТ body З СЕРВЕРУ
-  
-  if (!title || completed === undefined) {
-    return res.status(400).json({ error: 'title or completed is required!'})
-  }
-
-  const task = tasks.find(t => t.id === id);
-
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
-
-  task.title = title;
-  task.completed = completed;
-
-  res.json(task);
-})
-
-app.delete('/tasks/:id', (req, res) => {
-  let id = Number(req.params.id)
-
-  let existtingTask = tasks.find(t => t.id === id)
-
-  if (!existtingTask) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
-
-  tasks = tasks.filter(t => t.id !== id)
-
-  res.json(tasks);
-})
+sequelize.sync()
+  .then(() => {console.log('📦 Таблиці синхронізовано');})
+  .catch(err => console.error('❌ Помилка синхронізації:', err));
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`)
-})
+});

@@ -1,0 +1,314 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Tasks API",
+    "version": "1.0.0",
+    "description": "API для управління користувачами та завданнями"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "summary": "Отримати всіх користувачів з фільтрами та пагінацією",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "first_name",
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "last_name",
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": { "type": "integer" }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список користувачів"
+          }
+        }
+      },
+      "post": {
+        "summary": "Створити користувача",
+        "tags": ["Users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["first_name", "last_name", "email"],
+                "properties": {
+                  "first_name": { "type": "string" },
+                  "last_name": { "type": "string" },
+                  "email": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Користувача створено"
+          },
+          "400": {
+            "description": "Не валідно надісланий запит"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Отримати користувача по ID",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Користувача знайдено" },
+          "400": { "description": "Відсутні поля для оновлення" },
+          "404": { "description": "Завдання не знайдено" }
+        }
+      },
+      "put": {
+        "summary": "Оновити користувача",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": { "type": "string" },
+                  "last_name": { "type": "string" },
+                  "email": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Користувача оновлено" },
+          "400": { "description": "Відсутні поля для оновлення" },
+          "404": { "description": "Користувача не знайдено" }
+        }
+      },
+      "delete": {
+        "summary": "Видалити користувача",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Користувача видалено" },
+          "404": { "description": "Користувача не знайдено" }
+        }
+      }
+    },
+    "/users/{id}/tasks": {
+      "get": {
+        "summary": "Отримати всі завдання користувача по ID",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Список завдань користувача",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "firstName": { "type": "string" },
+                    "lastName": { "type": "string" },
+                    "email": { "type": "string" },
+                    "Tasks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "integer" },
+                          "title": { "type": "string" },
+                          "completed": { "type": "boolean" },
+                          "userId": { "type": "integer" },
+                          "createdAt": { "type": "string", "format": "date-time" },
+                          "updatedAt": { "type": "string", "format": "date-time" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Користувача не знайдено"
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "summary": "Отримати всі завдання з фільтрацією та пагінацією",
+        "tags": ["Tasks"],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "completed",
+            "schema": { "type": "boolean" }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": { "type": "integer" }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Список завдань" }
+        }
+      },
+      "post": {
+        "summary": "Створити нове завдання",
+        "tags": ["Tasks"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "completed", "user_id"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "completed": { "type": "boolean" },
+                  "user_id": { "type": "integer" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Завдання створено" },
+          "400": { "description": "Не валідно надісланий запит" }
+        }
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "summary": "Отримати завдання по ID",
+        "tags": ["Tasks"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Список завдань" },
+          "404": { "description": "Завдання не знайдено" }
+        }
+      },
+      "put": {
+        "summary": "Оновити завдання",
+        "tags": ["Tasks"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "completed": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Завдання оновлено" },
+          "404": { "description": "Завдання оновлено" }
+        }
+      },
+      "delete": {
+        "summary": "Видалити завдання",
+        "tags": ["Tasks"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Завдання видалено" },
+          "404": { "description": "Завдання не знайдено" }
+
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Users", "description": "Управління користувачами" },
+    { "name": "Tasks", "description": "Управління завданнями" }
+  ]
+}
